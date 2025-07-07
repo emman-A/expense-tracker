@@ -1,0 +1,318 @@
+.expense-item {
+  position: relative;
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.2s ease-in-out;
+}
+
+.expense-item:last-child {
+  border-bottom: none;
+}
+
+.expense-item:hover {
+  background-color: var(--background-color);
+}
+
+.expense-item-content {
+  display: grid;
+  grid-template-columns: 120px 1fr 150px 100px 120px;
+  gap: 1rem;
+  padding: 1rem;
+  align-items: center;
+}
+
+/* Individual expense fields */
+.expense-date,
+.expense-description,
+.expense-category,
+.expense-amount,
+.expense-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+/* Labels (hidden on desktop, shown on mobile) */
+.date-label,
+.description-label,
+.category-label,
+.amount-label {
+  display: none;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Values */
+.date-value {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.description-value {
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.category-value {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.category-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.category-name {
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.amount-value {
+  font-size: 1rem;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* Actions */
+.expense-actions {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.expense-actions .btn {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+  min-width: auto;
+}
+
+/* Delete Confirmation Modal */
+.delete-confirm-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.delete-confirm-modal {
+  background: var(--surface-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-lg);
+  padding: 1.5rem;
+  max-width: 400px;
+  width: 90%;
+  animation: slideIn 0.2s ease-out;
+}
+
+.delete-confirm-modal h4 {
+  margin: 0 0 1rem 0;
+  color: var(--text-primary);
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.delete-confirm-modal p {
+  margin: 0 0 1rem 0;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.expense-preview {
+  background: var(--background-color);
+  border-radius: var(--border-radius);
+  padding: 0.75rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.expense-preview strong {
+  color: var(--text-primary);
+  font-size: 0.875rem;
+}
+
+.expense-preview span {
+  color: var(--primary-color);
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.modal-actions .btn {
+  min-width: 80px;
+}
+
+/* Mobile Responsive Design */
+@media (max-width: 768px) {
+  .expense-item-content {
+    display: block;
+    padding: 1rem;
+  }
+
+  .expense-date,
+  .expense-description,
+  .expense-category,
+  .expense-amount {
+    margin-bottom: 0.75rem;
+  }
+
+  .expense-actions {
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border-color);
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+
+  /* Show labels on mobile */
+  .date-label,
+  .description-label,
+  .category-label,
+  .amount-label {
+    display: block;
+  }
+
+  /* Adjust values for mobile */
+  .date-value,
+  .description-value,
+  .category-name {
+    font-size: 1rem;
+  }
+
+  .amount-value {
+    font-size: 1.125rem;
+    color: var(--primary-color);
+  }
+
+  .expense-actions .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .expense-item-content {
+    padding: 0.75rem;
+  }
+
+  .expense-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .expense-actions .btn {
+    width: 100%;
+  }
+
+  .delete-confirm-modal {
+    padding: 1rem;
+    margin: 1rem;
+  }
+
+  .modal-actions {
+    flex-direction: column-reverse;
+    gap: 0.5rem;
+  }
+
+  .modal-actions .btn {
+    width: 100%;
+    min-width: auto;
+  }
+}
+
+/* Animation keyframes */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Focus styles for accessibility */
+.expense-actions .btn:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* Hover effects */
+.expense-item-content:hover .description-value {
+  color: var(--primary-color);
+}
+
+.expense-item-content:hover .amount-value {
+  color: var(--primary-color);
+}
+
+/* Loading state for buttons */
+.expense-actions .btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Better text truncation for long descriptions */
+.description-value {
+  max-width: 100%;
+  display: block;
+}
+
+@media (min-width: 769px) {
+  .description-value {
+    max-width: 200px;
+  }
+}
+
+/* Category indicator hover effect */
+.category-value:hover .category-indicator {
+  transform: scale(1.1);
+  transition: transform 0.2s ease-in-out;
+}
+
+/* Smooth transitions */
+.expense-item,
+.expense-actions .btn,
+.category-indicator {
+  transition: all 0.2s ease-in-out;
+}
