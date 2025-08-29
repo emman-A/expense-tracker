@@ -128,13 +128,19 @@
     padding: 1rem 0;
   }
   
-  .header-content {
-    gap: 1rem;
-  }
-  
-  .header-text h1 {
-    font-size: 1.75rem;
-  }
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.header-buttons {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
   
   .header-text p {
     font-size: 0.875rem;

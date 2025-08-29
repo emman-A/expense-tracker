@@ -1,18 +1,10 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import { dbService } from '../db/database';
 
 // Initial state
 const initialState = {
   expenses: [],
-  categories: [
-    { id: 'food', name: 'Food & Dining', color: '#ef4444' },
-    { id: 'transportation', name: 'Transportation', color: '#3b82f6' },
-    { id: 'shopping', name: 'Shopping', color: '#8b5cf6' },
-    { id: 'entertainment', name: 'Entertainment', color: '#f59e0b' },
-    { id: 'bills', name: 'Bills & Utilities', color: '#10b981' },
-    { id: 'healthcare', name: 'Healthcare', color: '#ec4899' },
-    { id: 'education', name: 'Education', color: '#06b6d4' },
-    { id: 'other', name: 'Other', color: '#64748b' }
-  ],
+  categories: [],
   loading: false,
   error: null
 };
@@ -113,52 +105,39 @@ export const useExpenses = () => {
 export const ExpenseProvider = ({ children }) => {
   const [state, dispatch] = useReducer(expenseReducer, initialState);
 
-  // Load data from localStorage on mount
+  // Load data from database on mount
   useEffect(() => {
-    try {
-      dispatch({ type: EXPENSE_ACTIONS.SET_LOADING, payload: true });
-      
-      const savedExpenses = localStorage.getItem('expenses');
-      const savedCategories = localStorage.getItem('categories');
-      
-      const expenses = savedExpenses ? JSON.parse(savedExpenses) : [];
-      const categories = savedCategories ? JSON.parse(savedCategories) : initialState.categories;
-      
-      dispatch({
-        type: EXPENSE_ACTIONS.LOAD_DATA,
-        payload: { expenses, categories }
-      });
-    } catch (error) {
-      console.error('Error loading data from localStorage:', error);
-      dispatch({
-        type: EXPENSE_ACTIONS.SET_ERROR,
-        payload: 'Failed to load saved data'
-      });
-    }
+    const loadData = async () => {
+      try {
+        dispatch({ type: EXPENSE_ACTIONS.SET_LOADING, payload: true });
+        
+        // Load categories first (includes initialization of defaults)
+        const categories = await dbService.initializeDefaultCategories();
+        console.log('Categories loaded in context:', categories);
+        
+        // Load expenses
+        const expenses = await dbService.getAllExpenses();
+        
+        dispatch({
+          type: EXPENSE_ACTIONS.LOAD_DATA,
+          payload: { expenses, categories }
+        });
+      } catch (error) {
+        console.error('Error loading data from database:', error);
+        dispatch({
+          type: EXPENSE_ACTIONS.SET_ERROR,
+          payload: 'Failed to load data from database'
+        });
+      }
+    };
+
+    loadData();
   }, []);
 
-  // Save to localStorage whenever expenses or categories change
-  useEffect(() => {
-    try {
-      localStorage.setItem('expenses', JSON.stringify(state.expenses));
-      localStorage.setItem('categories', JSON.stringify(state.categories));
-    } catch (error) {
-      console.error('Error saving data to localStorage:', error);
-      dispatch({
-        type: EXPENSE_ACTIONS.SET_ERROR,
-        payload: 'Failed to save data'
-      });
-    }
-  }, [state.expenses, state.categories]);
-
   // Action creators
-  const addExpense = (expenseData) => {
+  const addExpense = async (expenseData) => {
     try {
-      const newExpense = {
-        id: Date.now().toString(),
-        ...expenseData,
-        createdAt: new Date().toISOString()
-      };
+      const newExpense = await dbService.addExpense(expenseData);
       dispatch({ type: EXPENSE_ACTIONS.ADD_EXPENSE, payload: newExpense });
       return newExpense;
     } catch (error) {
@@ -170,13 +149,9 @@ export const ExpenseProvider = ({ children }) => {
     }
   };
 
-  const updateExpense = (id, expenseData) => {
+  const updateExpense = async (id, expenseData) => {
     try {
-      const updatedExpense = {
-        ...expenseData,
-        id,
-        updatedAt: new Date().toISOString()
-      };
+      const updatedExpense = await dbService.updateExpense(id, expenseData);
       dispatch({ type: EXPENSE_ACTIONS.UPDATE_EXPENSE, payload: updatedExpense });
       return updatedExpense;
     } catch (error) {
@@ -188,8 +163,9 @@ export const ExpenseProvider = ({ children }) => {
     }
   };
 
-  const deleteExpense = (id) => {
+  const deleteExpense = async (id) => {
     try {
+      await dbService.deleteExpense(id);
       dispatch({ type: EXPENSE_ACTIONS.DELETE_EXPENSE, payload: id });
     } catch (error) {
       dispatch({
@@ -200,12 +176,9 @@ export const ExpenseProvider = ({ children }) => {
     }
   };
 
-  const addCategory = (categoryData) => {
+  const addCategory = async (categoryData) => {
     try {
-      const newCategory = {
-        id: Date.now().toString(),
-        ...categoryData
-      };
+      const newCategory = await dbService.addCategory(categoryData);
       dispatch({ type: EXPENSE_ACTIONS.ADD_CATEGORY, payload: newCategory });
       return newCategory;
     } catch (error) {
@@ -217,9 +190,13 @@ export const ExpenseProvider = ({ children }) => {
     }
   };
 
-  const deleteCategory = (id) => {
+  const deleteCategory = async (id) => {
     try {
+      await dbService.deleteCategory(id);
       dispatch({ type: EXPENSE_ACTIONS.DELETE_CATEGORY, payload: id });
+      // Reload expenses to reflect category changes
+      const expenses = await dbService.getAllExpenses();
+      dispatch({ type: EXPENSE_ACTIONS.LOAD_DATA, payload: { expenses, categories: state.categories } });
     } catch (error) {
       dispatch({
         type: EXPENSE_ACTIONS.SET_ERROR,
@@ -256,6 +233,66 @@ export const ExpenseProvider = ({ children }) => {
       .slice(0, limit);
   };
 
+  // Additional database-specific functions
+  const exportData = async () => {
+    try {
+      return await dbService.exportData();
+    } catch (error) {
+      dispatch({
+        type: EXPENSE_ACTIONS.SET_ERROR,
+        payload: 'Failed to export data'
+      });
+      throw error;
+    }
+  };
+
+  const importData = async (data) => {
+    try {
+      dispatch({ type: EXPENSE_ACTIONS.SET_LOADING, payload: true });
+      await dbService.importData(data);
+      
+      // Reload data after import
+      const categories = await dbService.getAllCategories();
+      const expenses = await dbService.getAllExpenses();
+      
+      dispatch({
+        type: EXPENSE_ACTIONS.LOAD_DATA,
+        payload: { expenses, categories }
+      });
+      
+      return true;
+    } catch (error) {
+      dispatch({
+        type: EXPENSE_ACTIONS.SET_ERROR,
+        payload: 'Failed to import data'
+      });
+      throw error;
+    }
+  };
+
+  const clearAllData = async () => {
+    try {
+      dispatch({ type: EXPENSE_ACTIONS.SET_LOADING, payload: true });
+      await dbService.clearAllData();
+      
+      // Reinitialize default categories
+      const categories = await dbService.initializeDefaultCategories();
+      
+      dispatch({
+        type: EXPENSE_ACTIONS.LOAD_DATA,
+        payload: { expenses: [], categories }
+      });
+      
+      return true;
+    } catch (error) {
+      dispatch({
+        type: EXPENSE_ACTIONS.SET_ERROR,
+        payload: 'Failed to clear data'
+      });
+      throw error;
+    }
+  };
+
   const value = {
     ...state,
     addExpense,
@@ -266,7 +303,10 @@ export const ExpenseProvider = ({ children }) => {
     clearError,
     getTotalExpenses,
     getExpensesByCategory,
-    getRecentExpenses
+    getRecentExpenses,
+    exportData,
+    importData,
+    clearAllData
   };
 
   return (

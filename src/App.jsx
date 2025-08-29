@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { ExpenseProvider } from './context/ExpenseContext';
 import ExpenseForm from './components/ExpenseForm/ExpenseForm';
 import ExpenseList from './components/ExpenseList/ExpenseList';
+import DataManager from './components/DataManager/DataManager';
 import './App.css';
 
 function App() {
   const [editingExpense, setEditingExpense] = useState(null);
   const [showForm, setShowForm] = useState(true);
+  const [showDataManager, setShowDataManager] = useState(false);
 
   const handleEditExpense = (expense) => {
     setEditingExpense(expense);
@@ -41,12 +43,21 @@ function App() {
                 <h1>💰 Expense Tracker</h1>
                 <p>Take control of your finances by tracking every expense</p>
               </div>
-              <button
-                className={`btn ${showForm ? 'btn-secondary' : 'btn-primary'}`}
-                onClick={toggleForm}
-              >
-                {showForm ? 'Hide Form' : 'Add Expense'}
-              </button>
+              <div className="header-buttons">
+                <button
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => setShowDataManager(true)}
+                  title="Manage your data - export, import, or clear"
+                >
+                  ⚙️ Data
+                </button>
+                <button
+                  className={`btn ${showForm ? 'btn-secondary' : 'btn-primary'}`}
+                  onClick={toggleForm}
+                >
+                  {showForm ? 'Hide Form' : 'Add Expense'}
+                </button>
+              </div>
             </div>
           </div>
         </header>
@@ -71,9 +82,14 @@ function App() {
 
         <footer className="app-footer">
           <div className="container">
-            <p>&copy; 2024 Expense Tracker. Built with React & Vite.</p>
+            <p>&copy; 2024 Expense Tracker. Built with React & Vite. Now with Database!</p>
           </div>
         </footer>
+
+        {/* Data Manager Modal */}
+        {showDataManager && (
+          <DataManager onClose={() => setShowDataManager(false)} />
+        )}
       </div>
     </ExpenseProvider>
   );

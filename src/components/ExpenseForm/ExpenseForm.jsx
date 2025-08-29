@@ -13,6 +13,12 @@ const ExpenseForm = ({ expenseToEdit, onCancel, onSuccess }) => {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Debug: Log categories when they change
+  useEffect(() => {
+    console.log('Categories in ExpenseForm:', categories);
+    console.log('Categories length:', categories?.length);
+  }, [categories]);
+
   // Populate form when editing
   useEffect(() => {
     if (expenseToEdit) {
